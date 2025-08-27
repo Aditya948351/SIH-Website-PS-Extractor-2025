@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIH Problem Statement Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .modal {
+            display: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-6">
+            <h1 class="text-3xl font-bold text-gray-900">SIH Problem Statement Dashboard</h1>
+            <p class="text-gray-600 mt-1">Your central hub for managing and selecting hackathon challenges.</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Sorting and Filtering -->
+        <div class="mb-8 p-4 bg-white rounded-lg shadow">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <h2 class="text-xl font-semibold">Filter & Sort</h2>
+                <div class="flex flex-wrap items-center gap-4">
+                    <div class="relative">
+                        <select id="sort-select" class="appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
+                            <option value="ps-number">Sort by PS Number</option>
+                            <option value="title">Sort by Title</option>
+                            <option value="category">Sort by Category</option>
+                            <option value="organization">Sort by Organization</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                        </div>
+                    </div>
+                     <div class="relative">
+                        <input type="text" id="search-input" placeholder="Search by keyword..." class="bg-gray-200 border border-gray-200 text-gray-700 py-2 px-4 rounded-lg focus:outline-none focus:bg-white focus:border-gray-500">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Problem Statements Grid -->
+        <div id="problem-statements-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Problem statement cards will be injected here by JavaScript -->
+        </div>
+    </main>
+
+    <!-- Modal for Problem Statement Details -->
+    <div id="ps-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div id="modal-content" class="modal-content bg-white rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto transform scale-95">
+            <div class="sticky top-0 bg-white px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h2 id="modal-title" class="text-2xl font-bold">Problem Statement Details</h2>
+                <button id="close-modal" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="font-semibold text-lg">Organization:</h3>
+                        <p id="modal-organization" class="text-gray-700"></p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-lg">Category:</h3>
+                        <p id="modal-category" class="text-gray-700"></p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-lg">PS Number:</h3>
+                        <p id="modal-ps-number" class="text-gray-700"></p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-lg">Description:</h3>
+                        <p id="modal-description" class="text-gray-700 whitespace-pre-wrap"></p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-lg">Links:</h3>
+                        <div class="flex space-x-4">
+                           <a id="modal-dataset-link" href="#" target="_blank" class="text-blue-600 hover:underline">Dataset</a>
+                           <a id="modal-yt-link" href="#" target="_blank" class="text-red-600 hover:underline">YouTube</a>
+                        </div>
+                    </div>
+                     <div>
+                        <h3 class="font-semibold text-lg">Recommended Tech Stack:</h3>
+                        <div id="modal-tech-stack" class="flex flex-wrap gap-2">
+                            <!-- Tech stack badges will be injected here -->
+                        </div>
+                    </div>
+                    <div class="border-t pt-4">
+                         <h3 class="font-semibold text-lg mb-2">AI Analysis</h3>
+                         <div id="ai-analysis-section" class="bg-gray-50 p-4 rounded-lg">
+                            <p id="ai-summary" class="text-gray-700"></p>
+                         </div>
+                    </div>
+                     <div class="border-t pt-4">
+                        <h3 class="font-semibold text-lg mb-2">Team Assignment</h3>
+                        <div class="flex items-center gap-4">
+                            <select id="team-member-select" class="p-2 border rounded-md">
+                                <option>Unassigned</option>
+                                <option>Alice</option>
+                                <option>Bob</option>
+                                <option>Charlie</option>
+                                <option>Diana</option>
+                            </select>
+                            <button id="assign-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Assign</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        const problemStatements = [
+            {
+                "id": "25001",
+                "title": "Smart Community Health Monitoring and Early Warning System for Water-Borne Diseases in Rural Northeast India",
+                "organization": "Ministry of Development of North Eastern Region",
+                "category": "Software",
+                "ps_number": "SIH25001",
+                "description": "<b>Problem Statement</b><br>This problem statement proposes the development of a Smart Health Surveillance and Early Warning System that can detect, monitor, and help prevent outbreaks of water-borne diseases in vulnerable communities. The system can be:<br><br>• Collect health data from local clinics, ASHA workers, and community volunteers via mobile apps or SMS.<br>• Use AI/ML models to detect patterns and predict potential outbreaks based on symptoms, water quality reports, and seasonal trends.<br>• Integrate with water testing kits or IoT sensors to monitor water source contamination (e.g., turbidity, pH, bacterial presence).<br>• Provide real-time alerts to district health officials and local governance bodies.<br>• Include a multilingual mobile interface for community reporting and awareness campaigns.<br>• Offer dashboards for health departments to visualize hotspots, track interventions, and allocate resources.<br><br><b>Background</b><br>Water-borne diseases such as diarrhea, cholera, typhoid, and hepatitis A are prevalent in many rural areas and tribal belts of the Northeastern Region (NER), especially during the monsoon season. These outbreaks are often linked to contaminated water sources, poor sanitation infrastructure, and delayed medical response. The terrain and remoteness of many villages make it difficult for health workers to monitor and respond to emerging health threats in time.<br><br><b>Expected Solution</b><br>A digital health platform that includes:<br><br>• A mobile app for data collection and community health reporting.<br>• AI-based outbreak prediction engine using health and environmental data.<br>• Integration with low-cost water quality sensors or manual test kits.<br>• Alert system for health authorities and local leaders.<br>• Educational modules for hygiene awareness and disease prevention.<br>• Offline functionality and support for tribal languages.",
+                "dataset_link": "#",
+                "yt_link": "#",
+                "assigned_to": null
+            },
+            {
+                "id": "25002",
+                "title": "Smart Tourist Safety Monitoring & Incident Response System using Al, Geo-Fencing, and Blockchain-based Digital ID",
+                "organization": "Ministry of Development of North Eastern Region",
+                "category": "Software",
+                "ps_number": "SIH25002",
+                "description": "<b>Problem Statement</b><br>This problem statement proposes the development of a Smart Tourist Safety Monitoring & Incident Response System that leverages AI, Blockchain, and Geo-Fencing technologies. The system should include:<br><br><b>Digital Tourist ID Generation Platform</b><br>• A secure blockchain-based system that issues digital IDs to tourists at entry points (airports, hotels, check-posts).<br>• These IDs should include basic KYC (Aadhaar/passport), trip itinerary, and emergency contacts, and be valid only for the duration of the visit.<br><br><b>Mobile Application for Tourists</b><br>• Auto-assign a Tourist Safety Score based on travel patterns and area sensitivity.<br>• Geo-fencing alerts when tourists enter high-risk or restricted zones.<br>• Panic Button with live location sharing to nearest police unit and emergency contacts.<br>• Optional real-time tracking feature (opt-in) for families and law enforcement.<br><br><b>AI-Based Anomaly Detection</b><br>• Detect sudden location drop-offs, prolonged inactivity, or deviation from planned routes.<br>• Flag missing, silent, or distress behaviour for investigations.<br><br><b>Tourism Department & Police Dashboard</b><br>• Real-time visualizations of tourist clusters and heat maps of high-risk zones.<br>• Access to digital ID records, alert history, and last known locations.<br>• Automated E-FIR generation for missing person cases.<br><br><b>Expected Solution</b><br>A robust digital ecosystem comprising:<br><br>• Web portal and mobile app for tourists and authorities.<br>• AI/ML models for behaviour tracking and predictive alerts.<br>• Blockchain-based ID generation and verification.<br>• Real-time dashboards for police/tourism departments.",
+                "dataset_link": "#",
+                "yt_link": "#",
+                "assigned_to": null
+            },
+            {
+                "id": "25003",
+                "title": "Low-Cost smart transportation solution for Agri produce from remote farms to nearest motorable road in NER Region",
+                "organization": "Ministry of Development of North Eastern Region",
+                "category": "Hardware",
+                "ps_number": "SIH25003",
+                "description": "<b>Problem Statement</b><br>This problem statement proposes the design and development of prefabricated modular road panels that use bamboo reinforcement and plastic waste-infused composites to build durable, erosion-resistant roads in remote and hilly areas. The solution may be:<br><br>• Utilize bamboo mesh or strips as structural reinforcement within concrete or stabilized soil panels.<br>• Incorporate processed plastic waste (LDPE, HDPE) into the mix to improve water resistance and flexibility.<br>• Include drainage features, slope adaptation mechanisms, and anti-slip surfacing.<br><br><b>Background</b><br>The Northeastern Region faces persistent challenges in building and maintaining rural roads due to difficult terrain and high rainfall. Combining bamboo and recycled plastic presents a unique opportunity to create sustainable, modular road infrastructure.<br><br><b>Expected Solution</b><br>• A prototype modular panel system.<br>• A deployment guide for constructing short road stretches.<br>• Cost-benefit analysis and environmental impact assessment.",
+                "dataset_link": "#",
+                "yt_link": "#",
+                "assigned_to": null
+            },
+            {
+                "id": "25004",
+                "title": "lmage based breed recognition for cattle and buffaloes of India",
+                "organization": "Ministry of Fisheries, Animal Husbandry & Dairying",
+                "category": "Software",
+                "ps_number": "SIH25004",
+                "description": "<b>Background</b><br>The Government of India is implementing the Bharat Pashudhan App (BPA) for data recording of dairy animals. A recurring issue is the incorrect identification and registration of animal breeds, affecting data integrity.<br><br><b>Description</b><br>An AI-driven solution is needed to identify the breed of an animal using its image. This will standardize breed identification and minimize manual errors, integrating with the BPA to support field workers.<br><br><b>Expected Solution</b><br>• AI and image analysis to classify cattle and buffalo breeds.<br>• Handles diverse environmental conditions and animal poses.<br>• Maintains a breed database for common Indian breeds.<br>• Integrates with BPA for real-time validation.",
+                "dataset_link": "#",
+                "yt_link": "#",
+                "assigned_to": null
+            },
+            {
+                "id": "25005",
+                "title": "lmage based Animal Type Classification for cattle and buffaloes",
+                "organization": "Ministry of Fisheries, Animal Husbandry & Dairying",
+                "category": "Software",
+                "ps_number": "SIH25005",
+                "description": "<b>Background</b><br>Evaluating the body structure of dairy animals (Animal Type Classification - ATC) is vital for predicting productivity. Manual ATC is subjective and prone to error.<br><br><b>Description</b><br>An AI-driven solution is needed to automate ATC by analyzing animal images, extracting body structure parameters, and assigning standardized scores. This will enhance the accuracy of animal evaluation under government missions like Rashtriya Gokul Mission.<br><br><b>Expected Solution</b><br>• AI-based system to evaluate physical traits from images.<br>• Extracts and quantifies body parameters (length, height, etc.).<br>• Generates objective classification scores.<br>• Integrates with the Bharat Pashudhan App (BPA).",
+                "dataset_link": "#",
+                "yt_link": "#",
+                "assigned_to": null
+            },
+            {
+                "id": "25006",
+                "title": "Development of a Digital Farm Management Portal for lmplementing Biosecurity measures in Pig and Poultry Farms",
+                "organization": "Ministry of Fisheries, Animal Husbandry & Dairying",
+                "category": "Software",
+                "ps_number": "SIH25006",
+                "description": "<b>Background</b><br>Biosecurity is crucial in pig and poultry sectors to prevent disease outbreaks like Avian Influenza and African Swine Fever. Many farmers lack access to practical information on biosecurity protocols.<br><br><b>Problem Description</b><br>A user-friendly digital platform is needed to help farmers implement and monitor biosecurity practices. The portal should offer risk assessment tools, training modules, compliance tracking, and real-time alerts.<br><br><b>Expected Outcomes</b><br>• Enhanced farmer awareness on biosecurity.<br>• Improved risk management at the farm level.<br>• Digital record-keeping and compliance tracking.<br>• Timely alerts and disease notifications.",
+                "dataset_link": "#",
+                "yt_link": "#",
+                "assigned_to": null
+            },
+             {
+                "id": "25007",
+                "title": "Development of a Digital Farm Management Portal for Monitoring Maximum Residue Limits (MRL) and Antimicrobial Usage (AMU) in Livestock",
+                "organization": "Ministry of Fisheries, Animal Husbandry & Dairying",
+                "category": "Software",
+                "ps_number": "SIH25007",
+                "description": "<b>Background</b><br>Inappropriate use of antimicrobials in livestock can lead to residues in food products and contribute to antimicrobial resistance (AMR). Monitoring AMU and ensuring compliance with MRL is crucial.<br><br><b>Problem Description</b><br>A digital solution is needed to track and manage antimicrobial usage on farms. The portal should record drug usage, integrate with prescriptions, provide alerts for withdrawal periods, and offer dashboards for trend analysis.<br><br><b>Expected Outcomes</b><br>• Improved antimicrobial stewardship practices.<br>• Enhanced compliance with MRL norms.<br>• Real-time data on AMU for authorities.<br>• Healthier livestock and reduced antimicrobial residues in food.",
+                "dataset_link": "#",
+                "yt_link": "#",
+                "assigned_to": null
+            },
+            {
+                "id": "25008",
+                "title": "Disaster Preparedness and Response Education System for Schools and Colleges",
+                "organization": "Government of Punjab",
+                "category": "Software",
+                "ps_number": "SIH25008",
+                "description": "<b>Problem Description</b><br>Schools and colleges in India are often unprepared for natural disasters. There is a lack of structured disaster management education and digital tools for training.<br><br><b>Impact</b><br>Lack of preparedness leads to panic and potentially fatal outcomes during emergencies. Integrating disaster education can equip students and staff with life-saving skills.<br><br><b>Expected Outcomes</b><br>• A digital platform with interactive disaster education modules, alerts, and virtual drills.<br>• Gamified learning experiences.<br>• Emergency contact directories and communication tools.<br>• Dashboards for administrators to track preparedness.",
+                "dataset_link": "#",
+                "yt_link": "#",
+                "assigned_to": null
+            },
+            {
+                "id": "25009",
+                "title": "Gamified Environmental Education Platform for Schools and Colleges",
+                "organization": "Government of Punjab",
+                "category": "Software",
+                "ps_number": "SIH25009",
+                "description": "<b>Problem Description</b><br>Environmental education in schools is largely theoretical, with little emphasis on real-world application or personal responsibility.<br><br><b>Impact</b><br>An interactive approach to environmental learning can foster long-term behavioral change and align with India's SDG goals and NEP 2020.<br><br><b>Expected Outcomes</b><br>• A gamified platform teaching environmental issues through interactive lessons and tasks.<br>• Tracking of eco-points for school competitions.<br>• Rewards for sustainable practices.",
+                "dataset_link": "#",
+                "yt_link": "#",
+                "assigned_to": null
+            },
+{
+    "id": "25010",
+    "title": "Smart Crop Advisory System for Small and Marginal Farmers",
+    "organization": "Government of Punjab",
+    "category": "Software",
+    "ps_number": "SIH25010",
+    "description": "<b>Problem Description</b><br><br>A majority of small and marginal farmers in India rely on traditional knowledge, local shopkeepers, or guesswork for crop selection, pest control, and fertilizer use. They lack access to personalized, real-time advisory services that account for soil type, weather conditions, and crop history.<br><br>This often leads to poor yield, excessive input costs, and environmental degradation due to overuse of chemicals. Language barriers, low digital literacy, and absence of localized tools further limit their access to modern agri-tech resources.<br><br><b>Impact / Why this problem needs to be solved</b><br><br>Helping small farmers make informed decisions can significantly increase productivity, reduce costs, and improve livelihoods. It also contributes to sustainable farming practices, food security, and environmental conservation. A smart advisory solution can empower farmers with scientific insights in their native language and reduce dependency on unreliable third-party advice.<br><br><b>Expected Outcomes</b><br><br>• A multilingual, AI-based mobile app or chatbot that provides real-time, location-specific crop advisory.<br>• Soil health recommendations and fertilizer guidance.<br>• Weather-based alerts and predictive insights.<br>• Pest/disease detection via image uploads.<br>• Market price tracking.<br>• Voice support for low-literate users.<br>• Feedback and usage data collection for continuous improvement.<br><br><b>Relevant Stakeholders / Beneficiaries</b><br><br>• Small and marginal farmers<br>• Agricultural extension officers<br>• Government agriculture departments<br>• NGOs and cooperatives<br>• Agri-tech startups<br><br><b>Supporting Data</b><br><br>• 86% of Indian farmers are small or marginal (NABARD Report, 2022).<br>• Studies show ICT-based advisories can increase crop yield by 20–30%.",
+    "dataset_link": "#",
+    "yt_link": "#",
+    "assigned_to": null
+  },
+  {
+    "id": "25011",
+    "title": "Smart Curriculum Activity & Attendance App",
+    "organization": "Government of Punjab",
+    "category": "Software",
+    "ps_number": "SIH25011",
+    "description": "<b>Problem Description</b><br><br>Many educational institutions still depend on manual attendance systems, which are time-consuming and error-prone. Teachers spend a significant portion of class time marking attendance, reducing valuable instructional hours. Additionally, students often waste free periods with unproductive activities due to a lack of structured guidance. This leads to poor time management and reduced alignment with long-term academic or career goals. There is also a gap in personalized learning support during idle classroom hours. Institutions currently lack tools that integrate daily schedules with individual student planning and automated tracking.<br><br><b>Impact / Why this problem needs to be solved</b><br><br>This issue impacts both administrative efficiency and student development. Automating attendance saves teachers' time and ensures more accurate records. Additionally, providing students with structured personal development activities during free time helps improve productivity, goal clarity, and learning outcomes. Institutions can also gain better insight into student behavior and engagement, allowing for more targeted support.<br><br><b>Expected Outcomes</b><br><br>• Automatically marks student attendance based on the daily timetable using QR code, Bluetooth/Wi-Fi proximity, or face recognition.<br>• Displays real-time attendance on a classroom screen.<br>• Suggests personalized academic tasks during free periods based on the student's interests, strengths, and career goals.<br>• Generates a daily routine combining class schedule, free time, and long-term personal goals.<br><br>The app will require minimal infrastructure and be usable by both students and staff with basic training.<br><br><b>Relevant Stakeholders / Beneficiaries</b><br><br>• Students<br>• Teachers<br>• College administrators<br>• Career counselors<br>• Education departments<br><br><b>Supporting Data</b><br><br>• Surveys and reports on classroom time usage, student productivity, and NEP 2020 recommendations emphasizing personalized and experiential learning.",
+    "dataset_link": "#",
+    "yt_link": "#",
+    "assigned_to": null
+  },
+  {
+    "id": "25012",
+    "title": "Automated Attendance System for Rural Schools",
+    "organization": "Government of Punjab",
+    "category": "Software",
+    "ps_number": "SIH25012",
+    "description": "<b>Problem Description</b><br><br>Many rural schools in India rely on manual attendance systems, which are time-consuming and prone to errors. Teachers spend significant time marking attendance, reducing instructional time. Additionally, inaccurate records can lead to discrepancies in government reporting for schemes like mid-day meals. This problem is prevalent in under-resourced schools with limited access to technology, affecting administrative efficiency and student tracking.<br><br><b>Impact / Why this problem needs to be solved</b><br><br>This issue affects over 50% of rural schools, impacting millions of students and teachers. It leads to inefficiencies, delays in reporting, and potential mismanagement of resources. Solving this will save time, improve accuracy, and enhance resource allocation.<br><br><b>Expected Outcomes</b><br><br>• A low-cost, user-friendly software or mobile application that automates attendance using facial recognition or RFID-based systems.<br>• Requires minimal infrastructure and training for deployment in rural schools.<br><br><b>Relevant Stakeholders / Beneficiaries</b><br><br>• School administrators<br>• Teachers<br>• Students<br>• Government education departments<br><br><b>Supporting Data</b><br><br>• Annual Status of Education Report (ASER) 2024, highlighting administrative challenges in rural schools.",
+    "dataset_link": "#",
+    "yt_link": "#",
+    "assigned_to": null
+  },
+  {
+    "id": "25013",
+    "title": "Real-Time Public Transport Tracking for Small Cities",
+    "organization": "Government of Punjab",
+    "category": "Software",
+    "ps_number": "SIH25013",
+    "description": "<b>Problem Description</b><br><br>In small cities and tier-2 towns, public transport systems lack real-time tracking, causing inconvenience to commuters who face unpredictable bus schedules. This leads to overcrowding, wasted time, and reduced reliance on public transport. The problem is acute in cities with growing populations but limited digital infrastructure for transport management.<br><br><b>Impact / Why this problem needs to be solved</b><br><br>Over 60% of commuters in small cities face delays due to lack of real-time information, reducing public transport usage and increasing private vehicle dependency, which worsens traffic and pollution. A solution would enhance commuter experience and promote sustainable transport.<br><br><b>Expected Outcomes</b><br><br>• A mobile app or web platform integrating GPS-based real-time tracking of buses.<br>• Display estimated arrival times and route information.<br>• Optimized for low-bandwidth environments to ensure accessibility in smaller towns.<br><br><b>Relevant Stakeholders / Beneficiaries</b><br><br>• Commuters<br>• Local transport authorities<br>• Municipal corporations<br><br><b>Supporting Data</b><br><br>• Urban Mobility India Report 2024, emphasizing transport inefficiencies in tier-2 cities.",
+    "dataset_link": "#",
+    "yt_link": "#",
+    "assigned_to": null
+  },
+  {
+    "id": "25014",
+    "title": "Waste Segregation Monitoring System for Urban Local Bodies",
+    "organization": "Government of Punjab",
+    "category": "Hardware",
+    "ps_number": "SIH25014",
+    "description": "<b>Problem Description</b><br><br>Urban local bodies struggle with improper waste segregation at the household level, leading to inefficiencies in waste processing and increased landfill burden. Despite awareness campaigns, compliance remains low due to lack of monitoring and feedback mechanisms. This issue is widespread in urban areas with high waste generation.<br><br><b>Impact / Why this problem needs to be solved</b><br><br>Improper segregation affects nearly 70% of urban waste management systems, increasing recycling costs and environmental pollution. A solution would improve waste processing efficiency and reduce landfill dependency.<br><br><b>Expected Outcomes</b><br><br>• IoT-based system or mobile app to monitor segregation at collection points.<br>• Provide real-time feedback to households on compliance.<br>• Generate compliance reports for local authorities to enforce better waste management.<br><br><b>Relevant Stakeholders / Beneficiaries</b><br><br>• Urban local bodies<br>• Residents<br>• Waste management agencies<br>• Environmental organizations<br><br><b>Supporting Data</b><br><br>Swachh Bharat Mission Urban 2.0 Report, highlighting segregation challenges.",
+    "dataset_link": "#",
+    "yt_link": "#",
+    "assigned_to": null
+  },
+  {
+    "id": "25015",
+    "title": "Intelligent Pesticide Sprinkling System Determined by the Infection Level of a Plant",
+    "organization": "Government of Punjab",
+    "category": "Hardware",
+    "ps_number": "SIH25015",
+    "description": "<b>Problem Description</b><br><br>Excessive and indiscriminate application of pesticides in agriculture creates soil degradation, water contamination, damage to useful insects, and health risks for humans and animals. Regardless of whether the plant is healthy or infected, traditional pesticide spraying methods are used evenly, leading to waste and contamination. Many farmers lack affordable, automated systems to monitor crop health and control pesticide usage accordingly. This issue occurs on both large and small farms where manual inspections and sprays are labor-intensive, inefficient, and often inaccurate.<br><br>An intelligent system is required to recognize pest or disease infection in individual plants and regulate the amount of pesticide sprayed. This ensures optimal use of chemicals, reduces environmental impact, and promotes sustainable agriculture.<br><br><b>Impact / Why this problem needs to be solved</b><br><br>• Reduces excessive pesticide usage and lowers farming costs.<br>• Protects soil and water quality, while minimizing harm to non-target organisms.<br>• Improves crop yield and quality through precise and timely treatment.<br>• Supports small and marginal farmers with cost savings and better farm sustainability.<br>• Contributes to safe and eco-friendly food production.<br><br><b>Expected Outcomes</b><br><br>• A smart automated system with sensors, cameras, and AI algorithms to detect infection levels.<br>• IoT-controlled sprayer to dispense pesticides only where and when needed.<br>• Mobile or web interface for farmers to monitor plant health and control the system remotely.<br><br><b>Relevant Stakeholders / Beneficiaries</b><br><br>• Farmers (small, medium, and large scale)<br>• Agricultural extension officers<br>• Agrochemical companies<br>• Environmental agencies<br>• Consumers demanding residue-free produce<br>• Government bodies promoting sustainable farming",
+    "dataset_link": "#",
+    "yt_link": "#",
+    "assigned_to": null
+  },
+  {
+    "id": "25016",
+    "title": "Automated Student Attendance Monitoring and Analytics System for Colleges",
+    "organization": "Government of Punjab",
+    "category": "Software",
+    "ps_number": "SIH25016",
+    "description": "<b>Problem Description</b><br><br>Attendance tracking in most colleges is still done manually, usually through roll calls or paper registers. This consumes valuable teaching time and often leads to errors such as incorrect entries or proxy attendance. In larger classes, the issue becomes even harder to manage.<br><br>Additionally, faculty and administrators lack easy access to attendance insights, making it difficult to identify students at risk or to track patterns in engagement. As education undergoes digital transformation, continuing to rely on outdated systems creates unnecessary inefficiencies and delays.<br><br>There is a clear need for a solution that not only automates attendance but also provides analytics for better academic planning. Such a system should be user-friendly, reliable, and work seamlessly in both in-person and online settings.<br><br><b>Impact / Why this problem needs to be solved</b><br><br>• Saves valuable teaching time otherwise wasted on manual attendance.<br>• Reduces errors and eliminates the problem of proxy attendance.<br>• Provides actionable insights for faculty to identify disengaged or struggling students.<br>• Enhances transparency and accountability in academic processes.<br>• Supports digital transformation of higher education institutions.<br><br><b>Expected Outcomes</b><br><br>• Automated attendance system using QR codes, biometrics, or facial recognition.<br>• Cloud-based dashboard for administrators and faculty to review attendance records.<br>• Analytics to identify attendance trends and student engagement levels.<br>• Compatibility with both offline and online classes.<br><br><b>Relevant Stakeholders / Beneficiaries</b><br><br>• Students<br>• Faculty and academic administrators<br>• College management bodies<br>• Education departments and policymakers",
+    "dataset_link": "#",
+    "yt_link": "#",
+    "assigned_to": null
+  },
+  {
+    "id": "25017",
+    "title": "Digital Platform for Centralized Alumni Data Management and Engagement",
+    "organization": "Government of Punjab",
+    "category": "Software",
+    "ps_number": "SIH25017",
+    "description": "<b>Problem Description</b><br><br>Most educational institutions do not have a reliable or centralized system to manage their alumni data. Once students graduate, their contact information, academic records, and career updates are often scattered across multiple platforms or lost entirely. In many cases, alumni communication is restricted to informal WhatsApp groups or outdated mailing lists, making long-term engagement difficult.<br><br>This lack of a structured system limits the potential of alumni relationships. Institutions miss opportunities to involve alumni in events, mentoring, internships, or fundraising. In a digitally connected world, the absence of a proper alumni management system creates a significant gap in outreach and growth.<br><br><b>Impact / Why this problem needs to be solved</b><br><br>• Strengthens alumni engagement and builds long-term institutional relationships.<br>• Provides opportunities for mentorship, internships, and collaborations.<br>• Enhances fundraising potential through better alumni outreach.<br>• Increases institutional credibility and community building.<br><br><b>Expected Outcomes</b><br><br>• A centralized alumni management platform to store and update alumni data.<br>• Features for communication, networking, and event management.<br>• Secure system for tracking career progress, mentorship opportunities, and donations.<br>• Easy-to-use interface for both administrators and alumni.<br><br><b>Relevant Stakeholders / Beneficiaries</b><br><br>• Alumni<br>• Current students (through mentorship and internships)<br>• Faculty and institution administrators<br>• College/university management bodies<br>• Employers and recruiters",
+    "dataset_link": "#",
+    "yt_link": "#",
+    "assigned_to": null
+  },
+
+
+
+        ];
+
+        const grid = document.getElementById('problem-statements-grid');
+        const modal = document.getElementById('ps-modal');
+        const modalContent = document.getElementById('modal-content');
+        const closeModalBtn = document.getElementById('close-modal');
+        const sortSelect = document.getElementById('sort-select');
+        const searchInput = document.getElementById('search-input');
+
+        let currentProblemStatements = [...problemStatements];
+
+        function getTechStack(category, title) {
+            const stack = [];
+            if (category.toLowerCase() === 'software') {
+                stack.push('Python', 'JavaScript', 'React/Vue', 'Node.js', 'MongoDB/PostgreSQL');
+                if (title.toLowerCase().includes('ai') || title.toLowerCase().includes('ml')) {
+                    stack.push('TensorFlow/PyTorch', 'Scikit-learn');
+                }
+                if (title.toLowerCase().includes('blockchain')) {
+                    stack.push('Solidity', 'Web3.js');
+                }
+                 if (title.toLowerCase().includes('iot')) {
+                    stack.push('MQTT', 'Raspberry Pi');
+                }
+            } else if (category.toLowerCase() === 'hardware') {
+                stack.push('Arduino/ESP32', 'C++', 'Sensors', '3D Printing', 'PCB Design');
+                 if (title.toLowerCase().includes('iot')) {
+                    stack.push('MQTT', 'Raspberry Pi');
+                }
+            }
+            return stack;
+        }
+
+        function createTechBadge(tech) {
+            return `<span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">${tech}</span>`;
+        }
+
+        function renderProblemStatements(statements) {
+            grid.innerHTML = '';
+            statements.forEach(ps => {
+                const card = document.createElement('div');
+                card.className = 'card bg-white p-6 rounded-lg shadow-md cursor-pointer';
+                card.dataset.id = ps.id;
+                
+                const assignedBadge = ps.assigned_to ? `<span class="absolute top-2 right-2 bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">${ps.assigned_to}</span>` : '';
+
+                card.innerHTML = `
+                    <div class="relative">
+                        ${assignedBadge}
+                        <h3 class="text-lg font-bold mb-2">${ps.title}</h3>
+                        <p class="text-sm text-gray-600 mb-1"><strong>Organization:</strong> ${ps.organization}</p>
+                        <p class="text-sm text-gray-600"><strong>Category:</strong> ${ps.category}</p>
+                        <p class="text-sm text-gray-500 mt-2">PS Number: ${ps.ps_number}</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openModal(ps) {
+            document.getElementById('modal-title').textContent = ps.title;
+            document.getElementById('modal-organization').textContent = ps.organization;
+            document.getElementById('modal-category').textContent = ps.category;
+            document.getElementById('modal-ps-number').textContent = ps.ps_number;
+            document.getElementById('modal-description').innerHTML = ps.description;
+            document.getElementById('modal-dataset-link').href = ps.dataset_link;
+            document.getElementById('modal-yt-link').href = ps.yt_link;
+            
+            const techStackContainer = document.getElementById('modal-tech-stack');
+            const techStack = getTechStack(ps.category, ps.title);
+            techStackContainer.innerHTML = techStack.map(createTechBadge).join('');
+
+            // AI Summary
+            const descriptionText = new DOMParser().parseFromString(ps.description, "text/html").body.textContent || "";
+            const summary = descriptionText.split('.').slice(0, 2).join('.') + '.';
+            document.getElementById('ai-summary').textContent = `AI Summary: ${summary}`;
+
+            // Team Assignment
+            const teamSelect = document.getElementById('team-member-select');
+            teamSelect.value = ps.assigned_to || 'Unassigned';
+            document.getElementById('assign-btn').dataset.id = ps.id;
+
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.style.opacity = 1;
+                modalContent.style.transform = 'scale(1)';
+            }, 10);
+        }
+
+        function closeModal() {
+            modal.style.opacity = 0;
+            modalContent.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
+        function sortAndFilter() {
+            let statements = [...problemStatements];
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            if (searchTerm) {
+                statements = statements.filter(ps => 
+                    ps.title.toLowerCase().includes(searchTerm) ||
+                    ps.organization.toLowerCase().includes(searchTerm) ||
+                    ps.description.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            const sortBy = sortSelect.value;
+            if (sortBy === 'ps-number') {
+                statements.sort((a, b) => a.ps_number.localeCompare(b.ps_number));
+            } else if (sortBy === 'title') {
+                statements.sort((a, b) => a.title.localeCompare(b.title));
+            } else if (sortBy === 'category') {
+                statements.sort((a, b) => a.category.localeCompare(b.category));
+            } else if (sortBy === 'organization') {
+                 statements.sort((a, b) => a.organization.localeCompare(b.organization));
+            }
+            
+            currentProblemStatements = statements;
+            renderProblemStatements(currentProblemStatements);
+        }
+
+        grid.addEventListener('click', (e) => {
+            const card = e.target.closest('.card');
+            if (card) {
+                const psId = card.dataset.id;
+                const ps = problemStatements.find(p => p.id === psId);
+                openModal(ps);
+            }
+        });
+
+        closeModalBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        document.getElementById('assign-btn').addEventListener('click', (e) => {
+            const psId = e.target.dataset.id;
+            const member = document.getElementById('team-member-select').value;
+            const ps = problemStatements.find(p => p.id === psId);
+            ps.assigned_to = member === 'Unassigned' ? null : member;
+            sortAndFilter();
+            closeModal();
+        });
+
+        sortSelect.addEventListener('change', sortAndFilter);
+        searchInput.addEventListener('input', sortAndFilter);
+
+        // Initial render
+        sortAndFilter();
+
+    </script>
+</body>
+</html>
